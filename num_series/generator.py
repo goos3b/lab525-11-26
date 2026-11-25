@@ -20,7 +20,7 @@ def _validate_n(n: int) -> None:
 
 
 def random_series(n: int,
-                  low: float = -100.0,
+                  low: float = 0.0,
                   high: float = 100.0,
                   seed: Optional[int] = None) -> List[float]:
     """Ряд из n равномерно распределённых случайных чисел на [low, high]."""
@@ -38,6 +38,13 @@ def sine_series(n: int,
                 seed: Optional[int] = None) -> List[float]:
     """Синусоидальный ряд с аддитивным шумом (для наглядной проверки MA)."""
     _validate_n(n)
+    if amplitude <= 0:
+        raise ValueError(f"amplitude должен быть > 0, получено: {amplitude}")
+    if frequency <= 0:
+        raise ValueError(f"frequency должен быть > 0, получено: {frequency}")
+    if noise < 0:
+        raise ValueError(f"noise должен быть >= 0, получено: {noise}")
+
     rng = random.Random(seed)
     return [
         amplitude * math.sin(2 * math.pi * frequency * i / n)
@@ -58,9 +65,14 @@ def trend_series(n: int,
         start + step * i + (rng.uniform(-noise, noise) if noise else 0.0)
         for i in range(n)
     ]
-def uniform_series(n: int, low: float = 0.0, high: float = 100.0, seed: int | None = None) -> List[float]:
-    """Равномерное распределение [low, high)."""
-    if n < 0:
-        raise ValueError(f"n должен быть >= 0, получено: {n}")
+def uniform_series(n: int, low: float = 0.0, high: float = 100.0,
+                   seed: int | None = None) -> List[float]:
+    """Вариант 1: равномерное распределение [low, high)."""
+    _validate_n(n)
+    if low >= high:
+        raise ValueError(f"low должно быть меньше high (получено: {low} >= {high})")
     rng = random.Random(seed)
-    return [ rng.uniform(low, high) for _ in range(n) ]
+    return [rng.uniform(low, high) for _ in range(n)]
+def validate_n(n: int) -> None:
+    """Публичная обёртка проверки n (нужна тестам)."""
+    _validate_n(n)
